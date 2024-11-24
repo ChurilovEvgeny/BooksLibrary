@@ -2,24 +2,41 @@ from enum import Enum
 
 
 class BookStatus(Enum):
-    AVAILABLE = 1
-    ISSUED = 2
+    AVAILABLE = "1"
+    ISSUED = "2"
 
 
 class Book:
-    def __init__(self, id: int, title: str, author: str, year: int, status: BookStatus):
-        self.__id = id
+    def __init__(
+        self,
+        title: str,
+        author: str,
+        year: int,
+        status: BookStatus | str = BookStatus.AVAILABLE,
+        pk: int = 0,
+    ):
+        self.__pk = pk
         self.__title = title.strip()
         self.__author = author.strip()
         self.__year = year
-        self.__status = status
+
+        if isinstance(status, BookStatus):
+            self.__status = status
+        elif isinstance(status, str):
+            self.__status = BookStatus(status)
+        else:
+            raise ValueError("Invalid status type")
 
     @property
-    def id(self) -> int:
-        return self.__id
+    def pk(self) -> int:
+        return self.__pk
+
+    @pk.setter
+    def pk(self, new_pk: int):
+        self.__pk = new_pk
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self.__title
 
     @property
@@ -35,13 +52,16 @@ class Book:
         return self.__status
 
     def to_dict(self):
+        # self.__class__.PROPERTY.fget.__name__ - получение имени свойства в виде строки
         return {
-            "id": self.id,
-            "title": self.title,
-            "author": self.author,
-            "year": self.year,
-            "status": self.status.value
+            self.__class__.pk.fget.__name__: self.pk,
+            self.__class__.title.fget.__name__: self.title,
+            self.__class__.author.fget.__name__: self.author,
+            self.__class__.year.fget.__name__: self.year,
+            self.__class__.status.fget.__name__: self.status.value,
         }
 
     def __str__(self):
-        return f"{self.id}: {self.title}, {self.author}, {self.year} | {self.status}"
+        return (
+            f"{self.pk}: {self.title}, {self.author}, {self.year} | {self.status.name}"
+        )
