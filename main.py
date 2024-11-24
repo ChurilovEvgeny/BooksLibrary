@@ -1,6 +1,6 @@
 from enum import Enum
 
-from db import DbConnector
+from db import JsonDbConnector, AbstractDBConnector
 from models import Book, BookStatus
 
 
@@ -12,10 +12,11 @@ class BookCommands(Enum):
     REMOVE = "2"
     UPDATE = "3"
     LIST = "4"
+    SEARCH = "5"
 
 
 class ProgramMenu:
-    def __init__(self, db_connector):
+    def __init__(self, db_connector: AbstractDBConnector):
         self.db_connector = db_connector  # подключение к БД
         self.run_menu()  # запуск меню
 
@@ -30,18 +31,21 @@ class ProgramMenu:
                 + f"{BookCommands.EXIT.value} - выход\n: "
             ).strip()
 
-            if command == BookCommands.ADD.value:
-                self.add_book()
-            elif command == BookCommands.REMOVE.value:
-                self.remove_book()
-            elif command == BookCommands.UPDATE.value:
-                self.update_book()
-            elif command == BookCommands.LIST.value:
-                self.list_books()
-            elif command == BookCommands.EXIT.value:
-                break
-            else:
-                print("Неизвестная команда. Попробуйте снова.")
+            match command:
+                case BookCommands.ADD.value:
+                    self.add_book()
+                case BookCommands.REMOVE.value:
+                    self.remove_book()
+                case BookCommands.UPDATE.value:
+                    self.update_book()
+                case BookCommands.LIST.value:
+                    self.list_books()
+                case BookCommands.SEARCH.value:
+                    self.search_books()
+                case BookCommands.EXIT.value:
+                    break
+                case _:
+                    print("Неизвестная команда. Попробуйте снова.")
 
     def add_book(self):
         title = input("Введите название книги: ")
@@ -87,14 +91,34 @@ class ProgramMenu:
             ).strip()
 
             if status in (BookStatus.AVAILABLE.value, BookStatus.ISSUED.value):
-                self.db_connector.update_book_status(book_pk=book_pk, new_status=status)
+                self.db_connector.update_book_status(
+                    book_pk=book_pk, new_status=BookStatus(status)
+                )
                 print("Статус обновлён!")
                 break
             else:
                 print("Неизвестный статус. Попробуйте снова.")
 
     def list_books(self):
-        books = self.db_connector.list_books()
+        self.print_books(self.db_connector.list_books())
+
+    def search_books(self):
+        title = input("Введите название книги (или нажмите Enter): ")
+        author = input("Введите автора книги (или нажмите Enter): ")
+        while True:
+            year = input("Введите год издания книги (или нажмите Enter): ")
+            if not year.isdigit():
+                print("Введён некорректный год. Попробуйте снова.")
+
+            year = int(year)
+            break
+
+        self.print_books(
+            self.db_connector.search_books(title=title, author=author, year=year)
+        )
+
+    @staticmethod
+    def print_books(books: list[Book]):
         if books:
             for book in books:
                 print(book)
@@ -103,7 +127,7 @@ class ProgramMenu:
 
 
 def main():
-    db_connector = DbConnector("books.json")
+    db_connector = JsonDbConnector("books.json")
     ProgramMenu(db_connector)
 
 
