@@ -28,6 +28,7 @@ class ProgramMenu:
                 + f"{BookCommands.REMOVE.value} - удалить\n"
                 + f"{BookCommands.UPDATE.value} - обновить статус\n"
                 + f"{BookCommands.LIST.value} - список все книг\n"
+                + f"{BookCommands.SEARCH.value} - поиск книг\n"
                 + f"{BookCommands.EXIT.value} - выход\n: "
             ).strip()
 
@@ -67,9 +68,9 @@ class ProgramMenu:
             book_pk = input("Введите PK книги для удаления: ")
             if not book_pk.isdigit():
                 print("Введён некорректный PK. Попробуйте снова.")
-
-            book_pk = int(book_pk)
-            break
+            else:
+                book_pk = int(book_pk)
+                break
 
         self.db_connector.remove_book(book_pk)
         print("Книга удалена!")
@@ -106,12 +107,12 @@ class ProgramMenu:
         title = input("Введите название книги (или нажмите Enter): ")
         author = input("Введите автора книги (или нажмите Enter): ")
         while True:
-            year = input("Введите год издания книги (или нажмите Enter): ")
-            if not year.isdigit():
+            year = input("Введите год издания книги (или 0): ")
+            if not year.isnumeric():
                 print("Введён некорректный год. Попробуйте снова.")
-
-            year = int(year)
-            break
+            else:
+                year = int(year)
+                break
 
         self.print_books(
             self.db_connector.search_books(title=title, author=author, year=year)

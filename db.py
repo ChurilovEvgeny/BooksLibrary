@@ -6,29 +6,62 @@ from models import Book, BookStatus
 
 
 class AbstractDBConnector(ABC):
+    """
+    Абстрактный класс для подключения к базе данных.
+    """
 
     @abstractmethod
     def add_book(self, book):
+        """
+        Добавить новую книгу в базу данных.
+        :param book: Добавляемая книга
+        """
         pass
 
     @abstractmethod
     def remove_book(self, book_pk: int):
+        """
+        Удалить книгу по идентификатору из базы данных.
+        :param book_pk: Идентификатор удаляемой книги
+        """
         pass
 
     @abstractmethod
-    def search_books(self, title: str = "", author: str = "", year: int = 0):
+    def search_books(
+        self, title: str = "", author: str = "", year: int = 0
+    ) -> list[Book]:
+        """
+        Поиск книг по заголовку, автору и году издания.
+        :param title: Заголовок книги
+        :param author: Автор книги
+        :param year: Год издания книги
+        :return: Список найденных книг
+        """
         pass
 
     @abstractmethod
     def update_book_status(self, book_pk: int, new_status: BookStatus):
+        """
+        Обновить статус книги по идентификатору в базе данных.
+        :param book_pk: Идентификатор книги
+        :param new_status: Новый статус книги
+        """
         pass
 
     @abstractmethod
-    def list_books(self):
+    def list_books(self) -> list[Book]:
+        """
+        Получить список всех книг из базы данных.
+        :return: Список всех книг
+        """
         pass
 
 
 class JsonDbConnector(AbstractDBConnector):
+    """
+    Класс для работы с базой данных через JSON-файл.
+    """
+
     def __init__(self, filename: str):
         self.filename = filename
 
@@ -60,8 +93,11 @@ class JsonDbConnector(AbstractDBConnector):
         data = self.__load_data()
         self.__save_data([item for item in data if item.pk != book_pk])
 
-    def search_books(self, title: str = "", author: str = "", year: int = 0):
-
+    def search_books(
+        self, title: str = "", author: str = "", year: int = 0
+    ) -> list[Book]:
+        # Если поля поиска пусты, то в них поиск не проходит
+        # В противном случае, поиск ведется через И
         def search_title(item_title: str, title: str) -> bool:
             if title:
                 return item_title.lower().find(title) != -1
@@ -108,5 +144,5 @@ class JsonDbConnector(AbstractDBConnector):
         ]
         self.__save_data(updated_data)
 
-    def list_books(self):
+    def list_books(self) -> list[Book]:
         return self.__load_data()

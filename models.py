@@ -2,11 +2,19 @@ from enum import Enum
 
 
 class BookStatus(Enum):
+    """
+    Перечисление, представляющее статус книги.
+    """
+
     AVAILABLE = "1"
     ISSUED = "2"
 
 
 class Book:
+    """
+    Класс, представляющий модель книги.
+    """
+
     def __init__(
         self,
         title: str,
@@ -52,6 +60,9 @@ class Book:
         return self.__status
 
     def to_dict(self):
+        """
+        Метод, возвращающий словарь с данными о книге.
+        """
         # self.__class__.PROPERTY.fget.__name__ - получение имени свойства в виде строки
         return {
             self.__class__.pk.fget.__name__: self.pk,
